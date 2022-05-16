@@ -36,7 +36,28 @@
                     </descriptorRefs>
                 </configuration>
             </plugin>
+
+            <plugin>
+                <groupId>net.bytebuddy</groupId>
+                <artifactId>byte-buddy-maven-plugin</artifactId>
+                <version>1.12.10</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>transform</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <transformations>
+                        <transformation>
+                            <plugin>example.ProxyDogPlugin</plugin>
+                        </transformation>
+                    </transformations>
+                </configuration>
+            </plugin>
         </plugins>
+
     </build>
 
 
