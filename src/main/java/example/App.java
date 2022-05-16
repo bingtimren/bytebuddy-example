@@ -1,46 +1,45 @@
 package example;
 
 import net.bytebuddy.ByteBuddy;
-import net.bytebuddy.dynamic.scaffold.InstrumentedType;
-import net.bytebuddy.implementation.Implementation;
-import net.bytebuddy.implementation.InvocationHandlerAdapter;
+import net.bytebuddy.dynamic.ClassFileLocator;
+import net.bytebuddy.dynamic.loading.ClassLoadingStrategy;
 import net.bytebuddy.implementation.MethodDelegation;
 import net.bytebuddy.implementation.bind.annotation.*;
-import net.bytebuddy.implementation.bytecode.ByteCodeAppender;
-import net.bytebuddy.matcher.ElementMatcher;
 import net.bytebuddy.matcher.ElementMatchers;
+import net.bytebuddy.pool.TypePool;
 
-import java.lang.reflect.InvocationHandler;
 import java.lang.reflect.Method;
-import java.nio.ByteBuffer;
 
 public class App {
 
     public static class BarkInterceptor {
         @RuntimeType
-        public static Object intercept(
+        public static void intercept(
                 @This Object self,
                 @Origin Method method,
                 @AllArguments Object[] args,
                 @SuperMethod Method superMethod
         ) throws Throwable {
             System.out.println("Before......");
-            Object result = superMethod.invoke(self, args);
+            superMethod.invoke(self, args);
             System.out.println("After......");
-            return result;
         }
     }
 
     public static void main(String[] args) throws Exception{
-        Class<?> dynamicDog = new ByteBuddy()
-                .subclass(Dog.class)
+        // powerful stuff, rebase a class definition!
+
+        TypePool typePool = TypePool.Default.ofSystemLoader();
+        new ByteBuddy()
+                .rebase(typePool.describe("example.Dog").resolve(),
+                        ClassFileLocator.ForClassLoader.ofSystemLoader())
                 .method(ElementMatchers.named("bark"))
                 .intercept(MethodDelegation.to(BarkInterceptor.class))
                 .make()
-                .load(App.class.getClassLoader())
-                .getLoaded();
+                .load(App.class.getClassLoader(), ClassLoadingStrategy.Default.INJECTION);
 
-        Dog dog = (Dog)dynamicDog.getDeclaredConstructor().newInstance();
+
+        Dog dog = new Dog();
         dog.bark("Woof");
     }
 }
