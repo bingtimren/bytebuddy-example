@@ -21,7 +21,7 @@ public class App {
                 @SuperMethod Method superMethod
         ) throws Throwable {
             System.out.println("Before......");
-            superMethod.invoke(self, args);
+            superMethod.invoke(self, (String)args[0]+","+args[0]);
             System.out.println("After......");
         }
     }
